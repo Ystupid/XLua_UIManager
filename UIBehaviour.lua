@@ -1,75 +1,74 @@
-local UIBehaviour = {}
+local UIBehaviour = {
+    __index = 
+    {
+        __Init = function(self, panelData)
+            self.active = false
+            self.name = panelData.name
+            self.gameObject = panelData.gameObject
+            self.transform = panelData.transform
+            self.canvas = panelData.canvas
+            self.canvasGroup = panelData.canvasGroup
 
-UIBehaviour.__index = {}
+            self:OnInit()
+        end,
 
-UIBehaviour.__index.__Init = function (self,panelData)
-    self.name = panelData.name
-    self.gameObject = panelData.gameObject
-    self.transform = panelData.transform
-    self.canvas = panelData.canvas
-    self.canvasGroup = panelData.canvasGroup
+        __Open = function(self)
+            self.active = true
+            self:OpenTween()
+            self:OnOpen()
+        end,
 
-    self:OnInit()
-end
+        __Close = function(self)
+            self.active = false
+            self:CloseTween()
+            self:OnClose()
+        end,
 
-UIBehaviour.__index.__Open = function (self)
-    self:OpenTween()
-    self:OnOpen()
-end
+        __Update = function(self)
+            self:OnUpdate()
+        end,
 
-UIBehaviour.__index.__Close = function (self)
-    self:CloseTween()
-    self:OnClose()
-end
+        GetLayer = function(self)
+            return self.canvas.sortingOrder
+        end,
 
-UIBehaviour.__index.__Update = function (self)
-    self:OnUpdate()
-end
+        SetLayer = function(self, layer)
+            self.canvas.sortingOrder = layer
+            return self
+        end,
 
-UIBehaviour.__index.GetLayer = function (self)
-    return self.canvas.sortingOrder
-end
+        Close = function(self)
+            UIManager.ClosePanel(self.name)
+        end,
 
-UIBehaviour.__index.SetLayer = function (self,layer)
-    self.canvas.sortingOrder = layer
-    return self
-end
+        OnInit = function(self)
+        end,
 
-UIBehaviour.__index.Close = function (self)
-    UIManager.ClosePanel(self.name)
-end
+        AddListener = function(self)
+        end,
 
-UIBehaviour.__index.OnInit = function (self)
+        OpenTween = function(self)
+            self.canvasGroup.alpha = 1
+            self.canvasGroup.interactable = true
+            self.canvasGroup.blocksRaycasts = true
+        end,
 
-end
+        OnOpen = function(self)
+        end,
 
-UIBehaviour.__index.AddListener = function (self)
+        CloseTween = function(self)
+            self.canvasGroup.alpha = 0
+            --self.canvasGroup.interactable = false
+            self.canvasGroup.blocksRaycasts = false
+            self:SetLayer(0)
+        end,
 
-end
+        OnClose = function(self)
+        end,
 
-UIBehaviour.__index.OpenTween = function (self)
-    self.canvasGroup.alpha = 1
-    self.canvasGroup.interactable = true
-    self.canvasGroup.blocksRaycasts = true
-end
-
-UIBehaviour.__index.OnOpen = function (self)
-
-end
-
-UIBehaviour.__index.CloseTween = function (self)
-    self.canvasGroup.alpha = 0
-    --self.canvasGroup.interactable = false
-    self.canvasGroup.blocksRaycasts = false
-    self:SetLayer(0)
-end
-
-UIBehaviour.__index.OnClose = function (self)
-
-end
-
-UIBehaviour.__index.OnUpdate = function (self)
-
-end
+        OnUpdate = function(self)
+        end
+    }
+}
 
 return UIBehaviour
