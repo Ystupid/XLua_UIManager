@@ -135,12 +135,14 @@ local ClosePanel = function(name)
     for i = index, count do
         panelQueue[i] = panelQueue[i + 1]
     end
-
 end
 
+UIManager.UIRoot = uiRoot
 UIManager.OpenPanel = OpenPanel
 UIManager.ClosePanel = ClosePanel
 UIManager.Update = Update
+UIManager.IsLoad = IsLoad
+UIManager.IsOpen = IsOpen
 
 UIManager.ctor = function()
     if uiRoot == nil then
