@@ -99,6 +99,8 @@ local OpenPanel = function(name, layer)
     panel.script:SetLayer(layer)
     panelQueue.count = panelQueue.count + 1
     panelQueue[panelQueue.count] = panel
+    
+    return panel
 end
 
 local ClosePanel = function(name)
