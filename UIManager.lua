@@ -4,18 +4,40 @@ local Path_UIPrefab = "Prefabs/UIPrefabs/"
 local Path_UIScript = "Logics/UIScripts/"
 
 local GameObject = CS.UnityEngine.GameObject
-local UIManager = {}
+local UIManager = class()
 
 local uiRoot = nil
 local uiCamera = nil
 
 local panelMap = {}
-local panelQueue = {}
+local panelQueue = {count = 0}
 
+---判断面板是否已经加载
+---@param name string
+---@return boolean
+local IsLoad = function(name)
+    return panelMap[name] ~= nil
+end
+
+---判断面板是否已经打开
+---@param name any
+---@return boolean
+local IsOpen = function(name)
+    if IsLoad(name) == false then
+        return false
+    end
+
+    local panel = panelMap[name]
+    return panel.script.active
+end
+
+---加载UI
+---@param name string
+---@return table
 local LoadUI = function(name)
     local path = Path_UIPrefab .. name
 
-    if panelMap[path] == nil then
+    if IsLoad(name) == false then
         local asset = AssetManager.Load(path, typeof(GameObject))
         local gameObject = AssetManager.Instantiate(asset, uiRoot)
 
@@ -37,15 +59,15 @@ local LoadUI = function(name)
             script = script
         }
 
-        panelMap[path] = panelData
+        panelMap[name] = panelData
         script:__Init(panelData)
     end
 
-    return panelMap[path]
+    return panelMap[name]
 end
 
 local GetNextLayer = function()
-    local index = #panelQueue
+    local index = panelQueue.count
     local layer = 0
     if index > 0 then
         layer = panelQueue[index].script:GetLayer() + 20
@@ -54,7 +76,7 @@ local GetNextLayer = function()
 end
 
 local Update = function()
-    for key,value in ipairs(panelQueue) do
+    for key, value in ipairs(panelQueue) do
         value.script:__Update()
     end
 end
@@ -63,6 +85,11 @@ local OpenPanel = function(name, layer)
     --print("OpenPanel:"..name)
 
     local panel = LoadUI(name)
+
+    if panel.script.active then
+        return panel
+    end
+
     panel.script:__Open()
 
     if layer == nil then
@@ -70,11 +97,12 @@ local OpenPanel = function(name, layer)
     end
 
     panel.script:SetLayer(layer)
-    table.insert(panelQueue, panel)
+    panelQueue.count = panelQueue.count + 1
+    panelQueue[panelQueue.count] = panel
 end
 
 local ClosePanel = function(name)
-    local count = #panelQueue
+    local count = panelQueue.count
 
     if count <= 0 then
         return
@@ -101,21 +129,25 @@ local ClosePanel = function(name)
     end
     --print("ClosePanel:"..panelQueue[index].name)
     panel.script:__Close()
-    table.remove(panelQueue, index)
+
+    panelQueue.count = panelQueue.count - 1
+
+    for i = index, count do
+        panelQueue[i] = panelQueue[i + 1]
+    end
+
 end
 
-UIManager.OpenPanel = OpenPanel;
-UIManager.ClosePanel = ClosePanel;
-UIManager.Update = Update;
+UIManager.OpenPanel = OpenPanel
+UIManager.ClosePanel = ClosePanel
+UIManager.Update = Update
 
-local Init = function()
+UIManager.ctor = function()
     if uiRoot == nil then
         uiRoot = GameObject.Find("MainCanvas/RootNode").transform
     end
 
-    MonoManager:AddUpdate("UIManager.Update",Update)
+    MonoManager:AddUpdate("UIManager.Update", Update)
 end
 
-Init()
-
-return UIManager
+return UIManager.new()
